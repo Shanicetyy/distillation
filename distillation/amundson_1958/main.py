@@ -6,7 +6,7 @@ import numpy as np
 
 class Model:
     def __init__(self, components: list = None, F: float = 0., P: float = 101325.,
-                 z_feed: list = None, RR: float = 1, D: float = 0, N: int = 1, feed_stage: int = 0,
+                 z_feed: list = None, E: list = None, RR: float = 1, D: float = 0, N: int = 1, feed_stage: int = 0,
                  T_feed_guess: float = 300.):
         """Distillation column with partial reboiler and total condenser.
         Feed is saturated liquid.
@@ -28,8 +28,9 @@ class Model:
         self.temperature_tol = 1.e-2
         self.components = components
         self.F_feed = F
-        self.P_feed = P
+        self.P_feed = P      
         self.z_feed = {key: val for key, val in zip(components, z_feed)}
+        self.E = E
         self.RR = RR
         self.D = D
         self.B = F - D
@@ -284,7 +285,7 @@ class Model:
 
         """
         A, B, C, D = make_ABC(
-            self.V, self.L, self.K[component], self.F, self.z[component], self.D, self.B, self.N
+            self.V, self.L, self.K[component], self.F, self.z[component], self.E, self.D, self.B, self.N
         )
         self.l[component][:] = solve_diagonal(A, B, C, D)
 
@@ -365,7 +366,7 @@ class Model:
         return np.abs((new - old) / new).max() < self.flow_rate_tol
 
 
-def make_ABC(V: np.array, L: np.array, K: np.array, F: np.array, z: np.array,
+def make_ABC(V: np.array, L: np.array, K: np.array, F: np.array, z: np.array, E: np.array,
              Distillate: float, Bottoms: float, N: int):
     """
     Distillation column with partial reboiler and total condenser
@@ -381,6 +382,7 @@ def make_ABC(V: np.array, L: np.array, K: np.array, F: np.array, z: np.array,
     :param Distillate: distillate flow rate
     :param Bottoms: bottoms flow rate
     :param N: number of equilibrium stages
+    :param E: bypass efficiency 
 
     :return: A, B, C, D
     """
@@ -398,9 +400,10 @@ def make_ABC(V: np.array, L: np.array, K: np.array, F: np.array, z: np.array,
     B[N] = 1 + V[N] * K[N] / Bottoms
     D[N] = F[N] * z[N]
 
+    A[1:N] = -1 / E[1:N]
     D[1:N] = F[1:N] * z[1:N]
-    B[1:N] = 1 + V[1:N] * K[1:N] / L[1:N]
-    C[1:N] = -V[2:(N + 1)] * K[2:(N + 1)] / L[2:(N + 1)]
+    B[1:N] = 1 / E[1:N] + (V[1:N] * K[1:N]) / (E[1:N] * L[1:N])
+    C[1:N] = -V[2:(N + 1)] * K[2:(N + 1)] / (E[1:N] * L[2:(N + 1)])
     return A, B, C, D
 
 
@@ -430,6 +433,7 @@ if __name__ == '__main__':
         ['n-Butane', 'n-Pentane', 'n-Octane'],
         1000., 101325. * 2,
         [0.2, 0.35, 0.45],
+        [0 for i in range(3)],
         1.5, 550., 3, 2
     )
     cls.run(num_iter=100)
