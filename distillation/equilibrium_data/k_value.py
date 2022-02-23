@@ -49,8 +49,8 @@ class KVal:
 
                 if verbose:
                     print('Setting Raoult\'s parameters for %s:' % compound)
-                    print('                A [deg Rankine^2]:', self.A)
-                    print('                B [deg Rankine]:', self.B)
+                    print('                A [dimensionless]:', self.A)
+                    print('                B [dimensionless]:', self.B)
                     print('                C [dimensionless]:', self.C)
                     print('     K value at 300 K, 1 bar= ', self.eval_SI(300., 1e5))
             else:
@@ -59,8 +59,8 @@ class KVal:
     def eval(self, T, p):
         """
 
-        :param T: temperature in Rankine
-        :param p: pressure in psia
+        :param T: temperature in Rankine (depriester) / Celsius (Raoult)
+        :param p: pressure in psia (depriester) / mmHg (Raoult)
         :return: K-value for component at specific *T* and *p*
         """
         import numpy as np
@@ -70,9 +70,8 @@ class KVal:
                 + self.a_p1 * np.log(p) + self.a_p2 / p / p + self.a_p3 / p
             )
         else:
-            return np.exp(
-                (10^(self.A - self.B/(self.C + T)))/ p
-            )
+            return np.power(10,(self.A - self.B/(self.C + T)))/ p
+            
 
     def eval_SI(self, T, p):
         """
@@ -88,8 +87,8 @@ class KVal:
                 Kelvin_to_Rankine(T), Paa_to_psia(p)
             )
         else:
-            from distillation.unit_conversions.temperature import Kelvin_to_Celcius
+            from distillation.unit_conversions.temperature import Kelvin_to_Celsius
             from distillation.unit_conversions.pressure import Paa_to_mmHg
             return self.eval(
-                Kelvin_to_Celcius(T), Paa_to_mmHg(p)
+                Kelvin_to_Celsius(T), Paa_to_mmHg(p)
             )
