@@ -74,18 +74,18 @@ class Model:
 
         .. note::
 
-            K values from DePriester charts
+            K values from DePriester charts/Raoult's Law
             CpL from Perrys
             CpV assumes ideal gas
             dH_vap from NIST Webbook
 
         """
-        from distillation.equilibrium_data.depriester_charts import DePriester
+        from distillation.equilibrium_data.k_value import KVal
         from distillation.equilibrium_data.heat_capacity_liquid import CpL
         from distillation.equilibrium_data.heat_capacity_vapor import CpV
         from distillation.equilibrium_data.heats_of_vaporization import dH_vap
         self.K_func = {
-            key: DePriester(key, verbose) for key in self.components
+            key: KVal(key, verbose) for key in self.components
         }
         self.CpL_func = {
             key: CpL(key, verbose) for key in self.components

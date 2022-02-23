@@ -14,7 +14,7 @@ setuptools.setup(
     url="https://github.com/dejac001/distillation",
     packages=['distillation'],
     package_data={'distillation': [
-        'equilibrium_data/depriester.csv', 'equilibrium_data/heat_capacity_liquid.csv',
+        'equilibrium_data/depriester.csv', 'equilibrium_data/raoult.csv', 'equilibrium_data/heat_capacity_liquid.csv',
         'equilibrium_data/heats_of_vaporization.csv',
     ]},
     classifiers=[

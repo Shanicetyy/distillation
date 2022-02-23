@@ -15,7 +15,7 @@ of chemical compounds.
 </p>
 
 Currently only supports configurations with total condensers and partial reboilers.
-Equilibrium data currently only comes from DePriester charts
+Equilibrium data currently only comes from DePriester charts and Raoult's Law
 and is assumed to only depend on pressure and temperature.
 
 

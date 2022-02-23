@@ -16,7 +16,7 @@ distillation/equilibrium_data
 .. automodule:: distillation.equilibrium_data.heats_of_vaporization
     :members:
 
-.. automodule:: distillation.equilibrium_data.depriester_charts
+.. automodule:: distillation.equilibrium_data.k_value
     :members:
 
 .. automodule:: distillation.equilibrium_data.heat_capacity_vapor

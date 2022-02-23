@@ -20,9 +20,11 @@ heat capacities and heats of vaporization are required.
 The heats of vaporization and heat capacities of the liquid
 are obtained from [Perry]_.
 The equilibrium properties are taken from
-the DePriester charts in [Wankat]_.
+the DePriester charts in [Wankat]_ or using Raoult's law in [Yaws]_.
 The heat capacities of the vapor are currently estimated as a polyatomic ideal gas.
 
 .. [Perry] Green, Don W., and Robert H. Perry. Perry's Chemical Engineers' Handbook (8th Edition), McGraw-Hill Professional Publishing, 2007. ProQuest Ebook Central,
 
 .. [Wankat] Wankat, P C. Separation Process Engineering (3rd Edition), Prentice Hall, 2012, p. 33
+
+.. [Yaws] Yaws, C. L. The Yaws Handbook of Vapor Pressure: Antoine Coefficients (2nd Edition), Gulf Professional Publishing, 2015.
