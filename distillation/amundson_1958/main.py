@@ -315,11 +315,13 @@ class Model:
 
         # stages 1 to N-1
         for j in range(1, self.N):
-            BE[j] = self.H_j_rule(j) - self.h_j_rule(j - 1)
-            CE[j] = self.h_j_rule(j) - self.H_j_rule(j + 1)
-            DE[j] = self.F[j] * self.h_feed_rule(j) - self.D * (self.h_j_rule(j - 1) - self.h_j_rule(j)) \
-                    - sum(self.F[k] for k in range(j + 1)) * self.h_j_rule(j) \
-                    + sum(self.F[k] for k in range(j)) * self.h_j_rule(j - 1)
+            BE[j] = (1 / self.E(j)) * self.H_j_rule(j) + (1 - (1 / self.E(j))) * self.H_j_rule(j+1) - self.h_j_rule(j - 1)
+            CE[j] = (1 / self.E(j)) * self.h_j_rule(j) + (1 - (1 / self.E(j))) * self.h_j_rule(j-1) - self.H_j_rule(j + 1)
+            DE[j] = self.F[j] * self.h_feed_rule(j) \
+                + (1 / self.E(j)) * self.D * (self.h_j_rule(j) - self.h_j_rule(j - 1)) \
+                    + (1/self.E(j)) * sum(self.F[k] for k in range(j + 1)) * self.h_j_rule(j) \
+                        + (1 - (1 / self.E(j))) * sum(self.F[k] for k in range(j + 1)) * self.h_j_rule(j - 1) \
+                            + sum(self.F[k] for k in range(j)) * self.h_j_rule(j - 1)
 
         # partial reboiler
         BE[self.N] = self.H_j_rule(self.N) - self.h_j_rule(self.N - 1)
