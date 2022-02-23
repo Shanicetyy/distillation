@@ -9,8 +9,15 @@ class dH_vap:
             for line in f:
                 vals = line.rstrip('\n').split(',')
                 if vals[0] == compound_name:
-                    self.value = float(vals[header.index('Value')]) * 1e6   # convert from kJ/mol to J/kmol
-                    self.T_ref = float(vals[header.index('T_ref')])
+                    self.C1 = float(vals[header.index('C1')]) * 1e7
+                    self.C2 = float(vals[header.index('C2')])
+                    self.C3 = float(vals[header.index('C3')])
+                    self.C4 = float(vals[header.index('C4')])
+                    self.T_ref = float(vals[header.index('T_ref [K]')])
+                    self.T_ci = float(vals[header.index('T_ci [K]')])
+                    self.T_r = self.T_ref/self.T_ci
+                    # Value in J/kmol
+                    self.value = self.C1 * ((1-self.T_r) ** (self.C2 + (self.C3*self.T_r) + (self.C4*self.T_r*self.T_r)))
 
         if verbose:
             print('Assuming heat of vaporization of %s is constant at %e kJ/mol' % (compound_name, self.value/1e6))
