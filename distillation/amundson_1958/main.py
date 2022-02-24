@@ -310,18 +310,18 @@ class Model:
 
         # total condenser
         BE[0] = 0.
-        CE[0] = self.h_j_rule(0) - self.H_j_rule(1)
+        CE[0] = (self.h_j_rule(0) - self.H_j_rule(1)) * self.E[0]
         DE[0] = self.F[0] * self.h_feed_rule(0) + self.Q_condenser_rule()
 
         # stages 1 to N-1
         for j in range(1, self.N):
-            BE[j] = (1 / self.E[j]) * self.H_j_rule(j) + (1 - (1 / self.E[j])) * self.H_j_rule(j+1) - self.h_j_rule(j - 1)
-            CE[j] = (1 / self.E[j]) * self.h_j_rule(j) + (1 - (1 / self.E[j])) * self.h_j_rule(j-1) - self.H_j_rule(j + 1)
-            DE[j] = self.F[j] * self.h_feed_rule(j) \
-                + (1 / self.E[j]) * self.D * (self.h_j_rule(j) - self.h_j_rule(j - 1)) \
-                    + (1/self.E[j]) * sum(self.F[k] for k in range(j + 1)) * self.h_j_rule(j) \
-                        + (1 - (1 / self.E[j])) * sum(self.F[k] for k in range(j + 1)) * self.h_j_rule(j - 1) \
-                            + sum(self.F[k] for k in range(j)) * self.h_j_rule(j - 1)
+            BE[j] = self.H_j_rule(j) + (self.E[j] - 1) * self.H_j_rule(j+1) - self.h_j_rule(j - 1) * self.E[j]
+            CE[j] = self.h_j_rule(j) + (self.E[j] - 1) * self.h_j_rule(j-1) - self.H_j_rule(j + 1) * self.E[j]
+            DE[j] = self.F[j] * self.h_feed_rule(j) * self.E[j] \
+                + self.D * (self.h_j_rule(j) - self.h_j_rule(j - 1)) \
+                    + sum(self.F[k] for k in range(j + 1)) * self.h_j_rule(j) \
+                        + (self.E[j] - 1) * sum(self.F[k] for k in range(j + 1)) * self.h_j_rule(j - 1) \
+                            + sum(self.F[k] for k in range(j)) * self.h_j_rule(j - 1) * self.E[j]
 
         # partial reboiler
         BE[self.N] = self.H_j_rule(self.N) - self.h_j_rule(self.N - 1)
@@ -389,23 +389,24 @@ def make_ABC(V: np.array, L: np.array, K: np.array, F: np.array, z: np.array, E:
     :return: A, B, C, D
     """
     B = np.zeros(N + 1)  # diagonal
-    A = -1 * np.ones(N)  # lower diagonal
+    A = E[1:N+1] * -np.ones(N)  # lower diagonal
     C = np.zeros(N)  # upper diagonal
     D = np.zeros(N + 1)
+    ones = np.zeros(N +1)
 
     assert abs(V[0]) < 1e-8, 'Vapor flow rate out of total condenser is non-zero!'
     # total condenser
-    B[0] = 1. + Distillate / L[0]
-    C[0] = -V[1] * K[1] / L[1]
-    D[0] = F[0] * z[0]
+    B[0] = (1. + Distillate / L[0]) * E[0]
+    C[0] = (-V[1] * K[1] / L[1]) * E[0]
+    D[0] = F[0] * z[0] * E[0]
     # reboiler
-    B[N] = 1 + V[N] * K[N] / Bottoms
-    D[N] = F[N] * z[N]
+    B[N] = (1 + V[N] * K[N] / Bottoms) * E[N]
+    D[N] = F[N] * z[N] * E[N]
 
-    A[1:N] = A[1:N] / E[1:N]
-    D[1:N] = F[1:N] * z[1:N]
-    B[1:N] = np.ones(N-1) / E[1:N] + (V[1:N] * K[1:N]) / (E[1:N] * L[1:N])
-    C[1:N] = -V[2:(N + 1)] * K[2:(N + 1)] / (E[1:N] * L[2:(N + 1)])
+
+    D[1:N] = F[1:N] * z[1:N] * E[1:N]
+    B[1:N] = np.ones(N-1) + (V[1:N] * K[1:N]) / L[1:N]
+    C[1:N] = -V[2:(N + 1)] * K[2:(N + 1)] / L[2:(N + 1)]
     return A, B, C, D
 
 
