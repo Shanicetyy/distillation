@@ -315,12 +315,12 @@ class Model:
 
         # stages 1 to N-1
         for j in range(1, self.N):
-            BE[j] = (1 / self.E(j)) * self.H_j_rule(j) + (1 - (1 / self.E(j))) * self.H_j_rule(j+1) - self.h_j_rule(j - 1)
-            CE[j] = (1 / self.E(j)) * self.h_j_rule(j) + (1 - (1 / self.E(j))) * self.h_j_rule(j-1) - self.H_j_rule(j + 1)
+            BE[j] = (1 / self.E[j]) * self.H_j_rule(j) + (1 - (1 / self.E[j])) * self.H_j_rule(j+1) - self.h_j_rule(j - 1)
+            CE[j] = (1 / self.E[j]) * self.h_j_rule(j) + (1 - (1 / self.E[j])) * self.h_j_rule(j-1) - self.H_j_rule(j + 1)
             DE[j] = self.F[j] * self.h_feed_rule(j) \
-                + (1 / self.E(j)) * self.D * (self.h_j_rule(j) - self.h_j_rule(j - 1)) \
-                    + (1/self.E(j)) * sum(self.F[k] for k in range(j + 1)) * self.h_j_rule(j) \
-                        + (1 - (1 / self.E(j))) * sum(self.F[k] for k in range(j + 1)) * self.h_j_rule(j - 1) \
+                + (1 / self.E[j]) * self.D * (self.h_j_rule(j) - self.h_j_rule(j - 1)) \
+                    + (1/self.E[j]) * sum(self.F[k] for k in range(j + 1)) * self.h_j_rule(j) \
+                        + (1 - (1 / self.E[j])) * sum(self.F[k] for k in range(j + 1)) * self.h_j_rule(j - 1) \
                             + sum(self.F[k] for k in range(j)) * self.h_j_rule(j - 1)
 
         # partial reboiler
@@ -383,7 +383,7 @@ def make_ABC(V: np.array, L: np.array, K: np.array, F: np.array, z: np.array, E:
     :param z: feed composition into stage for stage 0 to *N*
     :param Distillate: distillate flow rate
     :param Bottoms: bottoms flow rate
-    :param N: number of equilibrium stages
+    :param N: number of equilibrium 
     :param E: bypass efficiency 
 
     :return: A, B, C, D
@@ -402,9 +402,9 @@ def make_ABC(V: np.array, L: np.array, K: np.array, F: np.array, z: np.array, E:
     B[N] = 1 + V[N] * K[N] / Bottoms
     D[N] = F[N] * z[N]
 
-    A[1:N] = -1 / E[1:N]
+    A[1:N] = A[1:N] / E[1:N]
     D[1:N] = F[1:N] * z[1:N]
-    B[1:N] = 1 / E[1:N] + (V[1:N] * K[1:N]) / (E[1:N] * L[1:N])
+    B[1:N] = np.ones(N-1) / E[1:N] + (V[1:N] * K[1:N]) / (E[1:N] * L[1:N])
     C[1:N] = -V[2:(N + 1)] * K[2:(N + 1)] / (E[1:N] * L[2:(N + 1)])
     return A, B, C, D
 
@@ -423,7 +423,7 @@ def solve_component_mass_balances(*args):
     :param z: feed composition into stage for stage 0 to *N*
     :param Distillate: distillate flow rate
     :param Bottoms: bottoms flow rate
-    :param N: number of equilibrium stages
+    :param N: number of equilibrium 
     :return: l
     """
     A, B, C, D = make_ABC(*args)
