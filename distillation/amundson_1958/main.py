@@ -5,7 +5,7 @@ import numpy as np
 
 
 class Model:
-    def __init__(self, components: list = None, F: float = 0., P: float = 101325.,
+    def __init__(self, components: list = None, F: float = 0., P: float = 101325., P_drop: float = 0.,
                  z_feed: list = None, E: list = None, RR: float = 1, D: float = 0, N: int = 1, feed_stage: int = 0,
                  T_feed_guess: float = 300.):
         """Distillation column with partial reboiler and total condenser.
@@ -17,6 +17,7 @@ class Model:
         :param components: list of component names
         :param F: feed molar flow rate
         :param P: pressure (constant throughout column), [Pa]
+        :param P_drop: pressure drop per stage, [Pa]
         :param z_feed: mole fractions of each component, ordered
         :param RR: reflux ratio (L/D)
         :param D: distillate molar flow rate
@@ -28,7 +29,8 @@ class Model:
         self.temperature_tol = 1.e-2
         self.components = components
         self.F_feed = F
-        self.P_feed = P      
+        self.P = np.array([P - P_drop * i for i in range(N + 1)])
+        self.P_feed = P[feed_stage]      
         self.z_feed = {key: val for key, val in zip(components, z_feed)}
         self.E = E
         self.RR = RR
@@ -174,7 +176,7 @@ class Model:
         :param j: stage number
         :return: gas-phase mole fraction on stage
         """
-        return self.K_func[i].eval_SI(self.T[j], self.P_feed) * self.x_ij_expr(i, j)
+        return self.K_func[i].eval_SI(self.T[j], self.P[j]) * self.x_ij_expr(i, j)
 
     def Q_condenser_rule(self):
         """Condenser requirement can be determined from balances around total condenser"""
@@ -214,7 +216,7 @@ class Model:
 
         """
         for c in self.components:
-            self.K[c][:] = self.K_func[c].eval_SI(self.T[:], self.P_feed)
+            self.K[c][:] = self.K_func[c].eval_SI(self.T[:], self.P[:])
 
         self.T_old[:] = self.T[:]
 
@@ -237,7 +239,7 @@ class Model:
         l_total = sum(self.l[c][stage] for c in self.components)
         K_vals = [self.K_func[c].eval_SI for c in self.components]
         x_vals = [self.l[c][stage]/l_total for c in self.components]
-        return bubble_point(x_vals, K_vals, self.P_feed, self.T_old[stage])
+        return bubble_point(x_vals, K_vals, self.P[stage], self.T_old[stage])
 
     def calculate_T_feed(self):
         self.T_feed = self.bubble_T_feed()
