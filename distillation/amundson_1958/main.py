@@ -30,7 +30,7 @@ class Model:
         self.components = components
         self.F_feed = F
         self.P = np.array([P - P_drop * i for i in range(N + 1)])
-        self.P_feed = P[feed_stage]      
+        self.P_feed = self.P[feed_stage]      
         self.z_feed = {key: val for key, val in zip(components, z_feed)}
         self.E = E
         self.RR = RR
